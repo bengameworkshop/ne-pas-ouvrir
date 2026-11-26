@@ -31,7 +31,7 @@ nœud → papier → boîte à secouer → poupées → bougie à souffler → s
 2. Dans **Source**, choisis **Deploy from a branch**.
 3. Dans **Branch**, choisis `main` et `/ (root)`, puis **Save**.
 4. Attends 1 à 2 minutes et recharge la page. L'adresse s'affiche en haut :
-   `https://TON-PSEUDO.github.io/ne-pas-ouvrir/`
+   `https://bengameworkshop.github.io/ne-pas-ouvrir/`
 
 C'est en ligne ! 🎉
 
@@ -44,8 +44,7 @@ Le **mode test** saute l'écran d'installation et ajoute un bouton « Rejouer »
 | Lien | Effet |
 |---|---|
 | `…/ne-pas-ouvrir/?reset&test` | Repart de zéro, en mode test |
-| `…/ne-pas-ouvrir/?test&joueur=Léo` | Entre directement en tant que Léo |
-| `…/ne-pas-ouvrir/?test&joueur=Mamie` | Version « simple » (Mamie) |
+| `…/ne-pas-ouvrir/?test&joueur=Anouk` | Entre directement en tant qu'Anouk |
 | `…/ne-pas-ouvrir/?test&etape=5` | Saute directement à l'étape 5 |
 | `…/ne-pas-ouvrir/?reset&test=0` | Remet tout à zéro et quitte le mode test |
 
@@ -70,10 +69,7 @@ Pour modifier juste un texte, tu peux aussi le faire directement sur GitHub : cl
   - `nom` : le prénom affiché sur le bouton à l'entrée de l'appli.
   - `code` : le code écrit sur son **vrai** cadeau sous le sapin.
   - `photo` : sa tête en cartoon, par exemple `"photos/leo.png"`. Laisse `""` pour avoir une tête dessinée.
-  - `simple: true` : moins d'étapes, plus facile (grands-parents, tout-petits).
-  - `poupees: 3` : nombre de poupées russes à ouvrir (2 par défaut).
-  - `messages` : les surprises cachées entre les couches.
-- `messagesParDefaut` : les messages pour ceux qui n'en ont pas de personnels.
+- `messagesParDefaut` : les messages surprises entre les couches, les mêmes pour tout le monde.
 - `messageFinal` : le mot affiché tout à la fin.
 
 **Ajouter une photo dans un message :** crée un dossier `photos` dans le dépôt, mets-y l'image, puis écris
@@ -86,7 +82,7 @@ Pour modifier juste un texte, tu peux aussi le faire directement sur GitHub : cl
 
 ## 5. Le message à envoyer à la famille (le jour J)
 
-> 🎁 J'ai un cadeau pour toi ! Ouvre ce lien sur ton téléphone : https://TON-PSEUDO.github.io/ne-pas-ouvrir/
+> 🎁 J'ai un cadeau pour toi ! Ouvre ce lien sur ton téléphone : https://bengameworkshop.github.io/ne-pas-ouvrir/
 > Installe l'appli comme indiqué, ouvre l'icône « Ne pas ouvrir », touche ton prénom… et déballe !
 
 **Sur iPhone** : il faut ouvrir le lien dans **Safari**, puis faire Partager ⬆️ → « Sur l'écran d'accueil ».
@@ -97,6 +93,8 @@ Au premier lancement de l'icône, chacun touche son prénom. À la fin du débal
 ---
 
 ## Bon à savoir
+
+- **Un seul téléphone pour plusieurs personnes** : à la fin, le bouton « Au tour de quelqu'un d'autre » ramène à la liste des prénoms. Ceux qui ont déjà déballé ont un ✓, et en touchant leur prénom ils revoient directement leur code.
 
 - Le **micro** (bougie) et la **secousse** demandent une autorisation. Si quelqu'un refuse, il y a toujours une alternative au doigt : appui long sur la flamme, tapoter la boîte.
 - Sur iPhone, l'appli installée et Safari ne partagent pas leurs données. C'est pour ça que l'appli redemande le prénom quand on l'ouvre depuis l'icône.

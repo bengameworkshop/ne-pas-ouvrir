@@ -17,7 +17,7 @@ if (params.has('reset')) LS.clear();
 if (params.get('test') === '0') LS.set('test', false);
 else if (params.has('test')) LS.set('test', true);
 if (params.has('joueur')) LS.set('joueur', params.get('joueur'));
-if (params.has('etape')) LS.set('step', parseInt(params.get('etape'), 10) || 0);
+let pendingStep = params.has('etape') ? (parseInt(params.get('etape'), 10) || 0) : null;
 const TEST = LS.get('test', false);
 
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -308,6 +308,7 @@ function start() {
   if (!isStandalone() && !TEST && !LS.get('skipInstall', false)) return installScreen();
   const p = getPerson();
   if (!p) return nameScreen();
+  if (pendingStep !== null) { LS.set('step:' + p.nom, pendingStep); pendingStep = null; }
   runStep(p);
 }
 
@@ -347,13 +348,13 @@ function nameScreen() {
   const s = screen(`
     <h1>🎁 Un cadeau<br>t'attend !</h1>
     <div class="hint">Mais d'abord… qui es-tu ?</div>
-    <div class="pick${(C.joueurs || []).length > 6 ? ' many' : ''}">${(C.joueurs || []).map((j, i) => `<button class="btn ghost" data-i="${i}">${esc(j.nom)}</button>`).join('')}</div>
-    <div class="small">Touche ton prénom. Pas de triche 😏</div>`);
+    <div class="pick${(C.joueurs || []).length > 6 ? ' many' : ''}">${(C.joueurs || []).map((j, i) => `<button class="btn ghost" data-i="${i}">${esc(j.nom)}${LS.get('codeVu:' + j.nom, false) ? ' ✓' : ''}</button>`).join('')}</div>
+    <div class="small">Touche ton prénom. Pas de triche 😏${(C.joueurs || []).some(j => LS.get('codeVu:' + j.nom, false)) ? '<br>✓ = déjà déballé' : ''}</div>`);
   s.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
     const j = C.joueurs[+b.dataset.i];
     ac(); sfx.win(); burst(b, 16);
-    LS.set('joueur', j.nom); LS.set('step', 0); LS.set('codeVu', false);
-    b.textContent = `Bienvenue ${j.nom} ! 🎉`;
+    LS.set('joueur', j.nom);
+    b.textContent = LS.get('codeVu:' + j.nom, false) ? `Re-bonjour ${j.nom} !` : `Bienvenue ${j.nom} ! 🎉`;
     leave(start, 700);
   });
 }
@@ -370,11 +371,11 @@ function sequence(p) {
 
 function runStep(p) {
   const seq = sequence(p);
-  const i = Math.max(0, Math.min(LS.get('step', 0), seq.length - 1));
+  const i = Math.max(0, Math.min(LS.get('step:' + p.nom, 0), seq.length - 1));
   const kind = seq[i];
   const nth = seq.slice(0, i).filter(x => x === kind).length;
   let fired = false;
-  const done = (delay = 0) => { if (fired) return; fired = true; LS.set('step', i + 1); leave(() => runStep(p), delay); };
+  const done = (delay = 0) => { if (fired) return; fired = true; LS.set('step:' + p.nom, i + 1); leave(() => runStep(p), delay); };
   const real = seq.filter(x => x !== 'msg' && x !== 'code');
   const pos = seq.slice(0, i).filter(x => x !== 'msg' && x !== 'code').length;
   const dots = `<div class="dots">${real.map((_, j) => `<i class="${j <= pos ? 'on' : ''} ${j === pos ? 'cur' : ''}"></i>`).join('')}</div>`;
@@ -388,7 +389,9 @@ const STEPS = {
     const s = screen(`${ctx.dots}
       <div class="hint">Tire sur le nœud pour le défaire 🎀</div>
       <div class="stage" id="st">${giftSVG(p.prenom, false)}</div>
-      <div class="small">Attrape le nœud et tire fort, dans n'importe quelle direction !</div>`);
+      <div class="col"><div class="small">Attrape le nœud et tire fort, dans n'importe quelle direction !</div>
+      <button class="link" id="notme">Ce n'est pas moi (${esc(p.nom)}) ?</button></div>`);
+    s.querySelector('#notme').onclick = () => { LS.set('joueur', null); leave(start); };
     const st = s.querySelector('#st'), svg = st.querySelector('svg'), bow = svg.querySelector('.bow'), rib = svg.querySelector('.rib');
     let tx = 0, ty = 0, finished = false, lastStep = 0;
     const limit = p.simple ? 110 : 170;
@@ -697,10 +700,11 @@ const STEPS = {
       <div class="hint">Ton cadeau t'attend sous le sapin.<br>Cherche le paquet marqué :</div>
       <div class="codebox" id="cb">${chars.map(ch => `<span>${ch === ' ' ? '&nbsp;' : '?'}</span>`).join('')}</div>
       ${C.messageFinal ? `<div class="card compact">${nl(C.messageFinal)}</div>` : ''}
+      <button class="btn ghost" id="next">👥 Au tour de quelqu'un d'autre</button>
       ${TEST ? '<button class="link" id="again">🔁 Rejouer le déballage (mode test)</button>' : ''}`);
     const spans = [...s.querySelector('#cb').children];
     const ALPH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789★';
-    if (LS.get('codeVu', false)) {
+    if (LS.get('codeVu:' + p.nom, false)) {
       spans.forEach((sp, i) => { sp.innerHTML = chars[i] === ' ' ? '&nbsp;' : esc(chars[i]); });
     } else {
       const t0 = performance.now();
@@ -711,7 +715,7 @@ const STEPS = {
             clearInterval(iv);
             sp.textContent = chars[i]; sp.classList.add('lock');
             tone(600 + i * 70, 0.1, 'triangle', 0.2); buzz(25);
-            if (i === chars.length - 1) { LS.set('codeVu', true); confetti(); setTimeout(sfx.jingle, 200); }
+            if (i === chars.length - 1) { LS.set('codeVu:' + p.nom, true); confetti(); setTimeout(sfx.jingle, 200); }
           } else sp.textContent = ALPH[Math.floor(Math.random() * ALPH.length)];
         }, 60);
         onCleanup(() => clearInterval(iv));
@@ -720,7 +724,8 @@ const STEPS = {
     const mh = s.querySelector('#mh');
     mh.addEventListener('pointerdown', () => { ac(); mh.classList.remove('jump'); void mh.offsetWidth; mh.classList.add('jump'); sfx.giggle(); });
     const again = s.querySelector('#again');
-    if (again) again.onclick = () => { LS.set('step', 0); LS.set('codeVu', false); leave(start); };
+    if (again) again.onclick = () => { LS.set('step:' + p.nom, 0); LS.set('codeVu:' + p.nom, false); leave(start); };
+    s.querySelector('#next').onclick = () => { ac(); sfx.pop(); LS.set('joueur', null); leave(start); };
   },
 };
 
